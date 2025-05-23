@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Card, Container } from "react-bootstrap";
 import { B003Device } from "ch32webflash";
 
@@ -7,14 +7,33 @@ function App() {
   const [status, setStatus] = useState("Not connected");
   const [file, setFile] = useState<File | null>(null);
 
+  const [isExternal, setExternal] = useState(false);
+  const [externalUrl, setExternalUrl] = useState("");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     let compat = "hid" in navigator;
     setBrowserCompat(compat);
     console.log("Browser compatibility: ", compat);
+
+    let params = new URLSearchParams(window.location.search);
+    let image = params.get("image");
+    if (!!image) {
+      if (/^https?:\/\/.+\.bin$/i.test(image)) {
+        setExternal(true);
+        setExternalUrl(image);
+      }
+    }
   }, [setBrowserCompat]);
 
   const cleanup = () => {
+    //setExternal(false);
+    //setExternalUrl("");
     setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const upload = async () => {
@@ -53,14 +72,28 @@ function App() {
     });
     setStatus("Chip Info aquired");
 
-    // load file content
-    if (!!!file) {
-      setStatus("No file opened!");
-      cleanup();
-      return;
-    }
     setStatus("Writing Image... (this may take a while)");
-    const image = new Uint8Array(await file.arrayBuffer());
+
+    let image;
+    if (!isExternal) {
+      // load file content
+      if (!!!file) {
+        setStatus("No file opened!");
+        cleanup();
+        return;
+      }
+      image = new Uint8Array(await file.arrayBuffer());
+    } else {
+      const response = await fetch(externalUrl);
+      if (!response.ok) {
+        setStatus("Failed to fetch external image!");
+        cleanup();
+        return;
+      }
+      const buffer = await response.arrayBuffer();
+      image = new Uint8Array(buffer);
+      console.log(image);
+    }
     let r = await device.writeImage(image, 0x08000000);
     if (r !== 0) {
       setStatus(`Failed writing image (${r})`);
@@ -90,44 +123,77 @@ function App() {
                 <div id="status" className="mb-2 text-secondary">
                   Status: <span id="connectionStatus">{status}</span>
                 </div>
-                <div className="my-3">
-                  <input
-                    type="file"
-                    id="fileInput"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setFile(file);
-                      }
-                    }}
-                  />
-                  <div
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const file = e.dataTransfer.files?.[0];
-                      if (file) {
-                        setFile(file);
-                      }
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onClick={() =>
-                      document.getElementById("fileInput")?.click()
-                    }
-                    style={{
-                      border: "2px dashed #aaa",
-                      borderRadius: 8,
-                      padding: 24,
-                      cursor: "pointer",
-                      color: "#888",
-                    }}
-                  >
-                    {!!!file
-                      ? "Drag & drop a file here, or click to select"
-                      : `Loaded ${file.name}`}
-                  </div>
-                </div>
-                <Button disabled={!!!file} onClick={() => upload()}>
+                {!isExternal && (
+                  <>
+                    <div className="my-3">
+                      <input
+                        type="file"
+                        id="fileInput"
+                        ref={fileInputRef}
+                        style={{ display: "none" }}
+                        accept=".bin"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFile(file);
+                          }
+                        }}
+                      />
+                      <div
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) {
+                            setFile(file);
+                          }
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onClick={() =>
+                          document.getElementById("fileInput")?.click()
+                        }
+                        style={{
+                          border: "2px dashed #aaa",
+                          borderRadius: 8,
+                          padding: 24,
+                          cursor: "pointer",
+                          color: "#888",
+                        }}
+                      >
+                        {!!!file
+                          ? "Drag & drop a file here, or click to select"
+                          : `Loaded ${file.name}`}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {isExternal && (
+                  <Card className="mb-3 border-warning">
+                    <Card.Body>
+                      <Card.Title className="text-warning">
+                        <i
+                          className="bi bi-exclamation-triangle-fill"
+                          style={{ marginRight: 8 }}
+                        />
+                        External Binary Warning
+                      </Card.Title>
+                      <Card.Text>
+                        An external binary URL was supplied. Only flash if you
+                        trust the source!
+                      </Card.Text>
+                      <Card className="border">
+                        <Card.Body>
+                          <code style={{ wordBreak: "break-all" }}>
+                            {externalUrl}
+                          </code>
+                        </Card.Body>
+                      </Card>
+                    </Card.Body>
+                  </Card>
+                )}
+                <Button
+                  disabled={!!!file && !isExternal}
+                  onClick={() => upload()}
+                >
                   Flash to device
                 </Button>
               </Card.Body>

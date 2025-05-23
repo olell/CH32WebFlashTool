@@ -2,7 +2,11 @@
 
 Every wanted to flash bare-metal hardware directly from your Browser? I mean what could possibly go wrong? So this is for you!
 
-The CH32WebFlash Tool allows you to flash firmware to CH32V003 microcontrollers (running the rv003usb bootloader) directly from your browser. It is based on [CH32WebFlash](https://github.com/olell/CH32WebFlash)
+The CH32WebFlash Tool allows you to flash firmware to CH32V003 microcontrollers (running the rv003usb bootloader) directly from your browser. It is based on [CH32WebFlash](https://github.com/olell/CH32WebFlash).
+
+## It's online
+
+You can directly use it from GitHub-pages [**here**](https://olell.github.io/CH32WebFlashTool/)
 
 ## Run it locally
 
