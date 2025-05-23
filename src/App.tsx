@@ -4,12 +4,7 @@ import { B003Device } from "ch32webflash";
 
 function App() {
   const [browserCompat, setBrowserCompat] = useState(false);
-  const [device, setDevice] = useState<B003Device | null>(null);
-  const [connected, setConnected] = useState(false);
-
   const [status, setStatus] = useState("Not connected");
-
-  const [chipInfo, setChipInfo] = useState<any>({});
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -19,10 +14,7 @@ function App() {
   }, [setBrowserCompat]);
 
   const cleanup = () => {
-    setDevice(null);
-    setConnected(false);
     setFile(null);
-    setChipInfo({});
   };
 
   const upload = async () => {
@@ -31,9 +23,6 @@ function App() {
     await device.init();
 
     console.log(device);
-
-    setConnected(!!device.hd?.opened);
-    setDevice(device);
 
     if (!!!device || !!!device.hd) {
       setStatus("Failed opening device");
@@ -62,7 +51,6 @@ function App() {
         console.log(`${key}: ${value}`);
       }
     });
-    setChipInfo(info);
     setStatus("Chip Info aquired");
 
     // load file content
