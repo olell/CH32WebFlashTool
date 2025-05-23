@@ -251,7 +251,7 @@ function App() {
           <pre>/etc/udev/rules.d/99-ch32v003.rules</pre> with following
           contents: <br />
           <code>
-            {`KERNEL=="hidraw*", ATTRS{idVendor}=="[1209]", MODE="0664", GROUP="plugdev"`}
+            {`KERNEL=="hidraw*", ATTRS{idVendor}=="1209", MODE="0664", GROUP="plugdev"`}
           </code>
           <br />
           and add your user to the plugdev group by{" "}
