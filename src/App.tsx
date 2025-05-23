@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Card, Container } from "react-bootstrap";
 import { B003Device } from "ch32webflash";
 
@@ -6,6 +6,8 @@ function App() {
   const [browserCompat, setBrowserCompat] = useState(false);
   const [status, setStatus] = useState("Not connected");
   const [file, setFile] = useState<File | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let compat = "hid" in navigator;
@@ -15,6 +17,9 @@ function App() {
 
   const cleanup = () => {
     setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const upload = async () => {
@@ -94,7 +99,9 @@ function App() {
                   <input
                     type="file"
                     id="fileInput"
+                    ref={fileInputRef}
                     style={{ display: "none" }}
+                    accept=".bin"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
