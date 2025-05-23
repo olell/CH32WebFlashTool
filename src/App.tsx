@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Card, Container } from "react-bootstrap";
+import { Button, Card, Container, Modal } from "react-bootstrap";
 import { B003Device } from "ch32webflash";
 
 function App() {
@@ -9,6 +9,8 @@ function App() {
 
   const [isExternal, setExternal] = useState(false);
   const [externalUrl, setExternalUrl] = useState("");
+
+  const [openFailed, setOpenFailed] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +33,7 @@ function App() {
     //setExternal(false);
     //setExternalUrl("");
     setFile(null);
+    setOpenFailed(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -39,7 +42,13 @@ function App() {
   const upload = async () => {
     setStatus("Opening device");
     let device = new B003Device(0x1209, 0xb003);
-    await device.init();
+
+    try {
+      await device.init();
+    } catch {
+      setOpenFailed(true);
+      return;
+    }
 
     console.log(device);
 
@@ -221,6 +230,45 @@ function App() {
           </>
         )}
       </Container>
+      <Modal
+        show={openFailed}
+        onHide={() => {
+          cleanup();
+          setStatus("Not connected");
+        }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Failed to open the device!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Your browser supports WebHID but was not able to open the device. This
+          may have multiple reasons:
+          <br />
+          <br />
+          If you're on a linux machine, you probably have to add a udev-rule to
+          enable read & write access to your device. By default you are only
+          allowed to read from HID devices. To do this, create a file at{" "}
+          <pre>/etc/udev/rules.d/99-ch32v003.rules</pre> with following
+          contents: <br />
+          <code>
+            {`KERNEL=="hidraw*", ATTRS{idVendor}=="[1209]", MODE="0664", GROUP="plugdev"`}
+          </code>
+          <br />
+          and add your user to the plugdev group by{" "}
+          <code>usermod -aG plugdev {"$your_user"}</code>
+          <br />
+          <br />
+          For further information read this chrome for developers page:{" "}
+          <a href="https://developer.chrome.com/docs/capabilities/hid">
+            https://developer.chrome.com/docs/capabilities/hid
+          </a>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={cleanup}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
