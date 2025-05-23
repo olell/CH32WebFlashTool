@@ -1,7 +1,8 @@
 {
-  "name": "ch32webflash",
+  "name": "ch32webflashtool",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://olell.github.io/CH32WebFlashTool",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
