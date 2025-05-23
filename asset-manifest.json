@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/CH32WebFlashTool/static/css/main.2544e43a.css",
+    "main.js": "/CH32WebFlashTool/static/js/main.45cf01b4.js",
+    "index.html": "/CH32WebFlashTool/index.html",
+    "main.2544e43a.css.map": "/CH32WebFlashTool/static/css/main.2544e43a.css.map",
+    "main.45cf01b4.js.map": "/CH32WebFlashTool/static/js/main.45cf01b4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2544e43a.css",
+    "static/js/main.45cf01b4.js"
+  ]
+}
